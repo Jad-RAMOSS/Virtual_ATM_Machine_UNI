@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QPushButton, 
-                            QLabel, QLineEdit, QMessageBox, QStackedWidget, QSpacerItem, QSizePolicy)
+                            QLabel, QLineEdit, QMessageBox, QStackedWidget, QSpacerItem, QSizePolicy,
+                            QHBoxLayout)
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFont, QPalette, QColor
 from database.db_handler import DatabaseHandler
@@ -73,15 +74,61 @@ class MainWindow(QMainWindow):
                 color: white;
                 min-width: 100px;
             }
+            #exitButton {
+                background-color: #ff0000;
+                color: white;
+                border: 4px solid #ff0000;
+                border-radius: 4px;
+                font-size: 24px;
+                font-weight: bold;
+                min-width: 50px;
+                min-height: 50px;
+                max-width: 50px;
+                max-height: 50px;
+                padding: 0px;
+                margin: 20px;
+            }
+            #exitButton:hover {
+                background-color: #ff3333;
+                border-color: #ff3333;
+            }
+            #exitButton:pressed {
+                background-color: #cc0000;
+                border-color: #cc0000;
+            }
         """)
 
     def init_ui(self):
         """Initialize the user interface"""
         self.setWindowTitle('Virtual ATM')
         
+        # Create central widget and main layout
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Create top bar with exit button
+        top_bar = QWidget()
+        top_bar_layout = QHBoxLayout(top_bar)
+        top_bar_layout.setContentsMargins(0, 0, 20, 0)
+        top_bar_layout.setSpacing(0)
+        top_bar_layout.setAlignment(Qt.AlignRight | Qt.AlignTop)
+
+        # Create exit button
+        exit_button = QPushButton("X", self)
+        exit_button.setObjectName("exitButton")
+        exit_button.clicked.connect(self.close)
+        exit_button.setFixedSize(50, 50)
+        top_bar_layout.addWidget(exit_button)
+
+        # Add top bar to main layout
+        main_layout.addWidget(top_bar)
+
         # Create stacked widget for different screens
         self.stacked_widget = QStackedWidget()
-        self.setCentralWidget(self.stacked_widget)
+        main_layout.addWidget(self.stacked_widget)
 
         # Create and add screens
         self.main_menu = self.create_main_menu()
@@ -469,4 +516,12 @@ class MainWindow(QMainWindow):
             self.balance_label.setText(f"Current Balance: ${balance:.2f}")
         else:
             self.balance_label.setText("Error retrieving balance")
-        self.stacked_widget.setCurrentWidget(self.check_balance_screen) 
+        self.stacked_widget.setCurrentWidget(self.check_balance_screen)
+
+    def resizeEvent(self, event):
+        """Handle window resize to keep exit button in correct position"""
+        super().resizeEvent(event)
+        # Update exit button position when window is resized
+        exit_button = self.findChild(QPushButton, "exitButton")
+        if exit_button:
+            exit_button.move(self.width() - 70, 20) 
